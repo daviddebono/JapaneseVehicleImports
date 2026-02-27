@@ -41,10 +41,7 @@
         <h2 class="section-title">Vehicle Import Enquiry</h2>
         <p class="section-subtitle">Tell us what you’re looking for — single vehicle or bulk. We’ll confirm eligibility and outline the process. Submissions are forwarded to our team; your email is not shown on the site.</p>
 
-        <!-- Replace YOUR_FORMSPREE_ENDPOINT_ENQUIRY with your Formspree form ID (the part after /f/ in the form URL). Create form at formspree.io and paste the ID here. -->
-        <form id="enquiry-form" action="https://formspree.io/f/YOUR_FORMSPREE_ENDPOINT_ENQUIRY" method="POST">
-          <input type="hidden" name="_subject" value="Japanese Vehicle Imports – Enquiry">
-          <input type="hidden" name="_next" value="https://www.japanesevehicleimports.com.au/contact.html?enquiry=success">
+        <form id="enquiry-form" method="post" action="">
           <div class="form-group hp" aria-hidden="true">
             <label for="website">Website</label>
             <input type="text" id="website" name="_gotcha" tabindex="-1" autocomplete="off">
@@ -85,7 +82,7 @@
             <label for="message">Message <span style="color: var(--text-muted);">*</span></label>
             <textarea id="message" name="message" required placeholder="What vehicle(s) are you interested in? Single car/van/truck or bulk? Location (Sydney, Melbourne, Brisbane, Adelaide, Canberra, Hobart) if relevant."></textarea>
           </div>
-          <button type="submit" class="btn btn-primary">Send Enquiry</button>
+          <button type="submit" class="btn btn-primary" id="enquiry-submit">Send Enquiry</button>
         </form>
       </div>
     </section>
@@ -94,10 +91,7 @@
       <div class="container" style="max-width: 560px;">
         <h2 class="section-title">Newsletter</h2>
         <p class="section-subtitle">Get updates and promotions. We only use your email for this; you can unsubscribe anytime.</p>
-        <!-- Replace YOUR_FORMSPREE_ENDPOINT_NEWSLETTER with your Formspree newsletter form ID. Create a second form at formspree.io for newsletter and paste the ID here. -->
-        <form id="newsletter-form" action="https://formspree.io/f/YOUR_FORMSPREE_ENDPOINT_NEWSLETTER" method="POST">
-          <input type="hidden" name="_subject" value="Japanese Vehicle Imports – Newsletter signup">
-          <input type="hidden" name="_next" value="https://www.japanesevehicleimports.com.au/contact.html?newsletter=success">
+        <form id="newsletter-form" method="post" action="">
           <div class="form-group hp" aria-hidden="true">
             <label for="url">URL</label>
             <input type="text" id="url" name="_gotcha" tabindex="-1" autocomplete="off">
@@ -106,8 +100,9 @@
             <label for="newsletter-email">Email <span style="color: var(--text-muted);">*</span></label>
             <input type="email" id="newsletter-email" name="email" required>
           </div>
-          <button type="submit" class="btn btn-secondary">Subscribe</button>
+          <button type="submit" class="btn btn-secondary" id="newsletter-submit">Subscribe</button>
         </form>
+        <div id="newsletter-message-error" class="form-message error" style="display: none;">Something went wrong. Please try again later.</div>
         <div id="newsletter-message" class="form-message success" style="display: none;">Thanks for subscribing. You’ll hear from us with updates and promotions.</div>
       </div>
     </section>
@@ -133,6 +128,82 @@
       if (p.get('newsletter') === 'success') {
         var el = document.getElementById('newsletter-message');
         if (el) { el.style.display = 'block'; window.history.replaceState({}, '', window.location.pathname); }
+      }
+
+      function setSubmitState(btn, disabled) {
+        if (btn) { btn.disabled = disabled; btn.textContent = disabled ? 'Sending…' : btn.getAttribute('data-original-text') || btn.textContent; }
+      }
+
+      var enquiryForm = document.getElementById('enquiry-form');
+      var enquiryBtn = document.getElementById('enquiry-submit');
+      if (enquiryBtn) enquiryBtn.setAttribute('data-original-text', enquiryBtn.textContent);
+      if (enquiryForm) {
+        enquiryForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var msg = document.getElementById('form-message');
+          var err = document.getElementById('form-message-error');
+          if (msg) msg.style.display = 'none';
+          if (err) err.style.display = 'none';
+          setSubmitState(enquiryBtn, true);
+          var payload = {
+            type: 'enquiry',
+            _gotcha: enquiryForm.querySelector('[name="_gotcha"]') && enquiryForm.querySelector('[name="_gotcha"]').value,
+            name: enquiryForm.querySelector('[name="name"]') && enquiryForm.querySelector('[name="name"]').value,
+            company: enquiryForm.querySelector('[name="company"]') && enquiryForm.querySelector('[name="company"]').value,
+            role: enquiryForm.querySelector('[name="role"]') && enquiryForm.querySelector('[name="role"]').value,
+            email: enquiryForm.querySelector('[name="email"]') && enquiryForm.querySelector('[name="email"]').value,
+            phone: enquiryForm.querySelector('[name="phone"]') && enquiryForm.querySelector('[name="phone"]').value,
+            budget: enquiryForm.querySelector('[name="budget"]') && enquiryForm.querySelector('[name="budget"]').value,
+            message: enquiryForm.querySelector('[name="message"]') && enquiryForm.querySelector('[name="message"]').value
+          };
+          fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+            .then(function(_) {
+              setSubmitState(enquiryBtn, false);
+              if (_.ok && _.body && !_.body.error) {
+                if (msg) msg.style.display = 'block';
+                enquiryForm.reset();
+              } else {
+                if (err) err.style.display = 'block';
+              }
+            })
+            .catch(function() {
+              setSubmitState(enquiryBtn, false);
+              if (err) err.style.display = 'block';
+            });
+        });
+      }
+
+      var newsletterForm = document.getElementById('newsletter-form');
+      var newsletterBtn = document.getElementById('newsletter-submit');
+      var newsletterMsg = document.getElementById('newsletter-message');
+      if (newsletterBtn) newsletterBtn.setAttribute('data-original-text', newsletterBtn.textContent);
+      if (newsletterForm) {
+        newsletterForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (newsletterMsg) newsletterMsg.style.display = 'none';
+          setSubmitState(newsletterBtn, true);
+          var payload = {
+            type: 'newsletter',
+            _gotcha: newsletterForm.querySelector('[name="_gotcha"]') && newsletterForm.querySelector('[name="_gotcha"]').value,
+            email: newsletterForm.querySelector('[name="email"]') && newsletterForm.querySelector('[name="email"]').value
+          };
+          var newsletterErr = document.getElementById('newsletter-message-error');
+          if (newsletterErr) newsletterErr.style.display = 'none';
+          fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
+            .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
+            .then(function(_) {
+              setSubmitState(newsletterBtn, false);
+              if (_.ok && _.body && !_.body.error) {
+                if (newsletterMsg) newsletterMsg.style.display = 'block';
+                newsletterForm.reset();
+              } else if (newsletterErr) newsletterErr.style.display = 'block';
+            })
+            .catch(function() {
+              setSubmitState(newsletterBtn, false);
+              if (newsletterErr) newsletterErr.style.display = 'block';
+            });
+        });
       }
     })();
   </script>

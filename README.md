@@ -30,25 +30,27 @@ If `build.sh` is not used, use this **Build command** (one line):
 3. To preview: `npx serve .` or `python -m http.server 8000`, then open the URL shown.
 4. Commit and push to `main` to deploy.
 
-## Form setup (Formspree)
+## Form setup (SMTP2Go + Cloudflare Pages Function)
 
-The site has **two forms** that post to Formspree. Your email is never shown on the site; Formspree forwards submissions to you (e.g. Daviddebono81@gmail.com).
+The contact and newsletter forms submit to **`/api/send`**, a Cloudflare Pages Function that sends email via the **SMTP2Go** API (no Formspree). Sender: **japanesevehicleimports@circlebc.com.au**. Recipients: **goran.tipura@circlebc.com.au**, **david.debono@circlebc.com.au**.
 
-### 1. Create two forms on Formspree
+### 1. Add the API key in Cloudflare
 
-1. Go to [formspree.io](https://formspree.io) and sign up or log in.
-2. Create **Form 1** for the **enquiry form** (name, company, role, email, phone, budget, message). Formspree will give you an endpoint like `https://formspree.io/f/xxxxxxxx`.
-3. Create **Form 2** for the **newsletter** (email only). Get its endpoint.
+1. In **[dash.cloudflare.com](https://dash.cloudflare.com)** go to **Workers & Pages** → your **JapaneseVehicleImports** project → **Settings** → **Environment variables**.
+2. Add a **variable** (or **secret** for production):
+   - **Variable name:** `SMTP2GO_API_KEY`
+   - **Value:** your SMTP2Go API key (from [smtp2go.com](https://www.smtp2go.com) → API Users).
+3. Apply to **Production** (and **Preview** if you use branch previews). Save.
+4. Redeploy the project (e.g. trigger a new deploy from the **Deployments** tab) so the new env is picked up.
 
-### 2. Paste endpoints into the code
+### 2. Sender and recipients
 
-Open **`contact.html`** and replace the placeholders:
 
-- **Enquiry form:** Find `YOUR_FORMSPREE_ENDPOINT_ENQUIRY` in the enquiry form’s `action` attribute. Replace it with your **enquiry form** ID (the part after `/f/`).  
+The function sends from **japanesevehicleimports@circlebc.com.au** to **goran.tipura@circlebc.com.au** and **david.debono@circlebc.com.au**. Ensure this sender is verified in your SMTP2Go account (circlebc.com.au domain). (Formspree placeholder text removed.) in the enquiry form’s `action` attribute. Replace it with your **enquiry form** ID (the part after `/f/`).  
   Example: if your URL is `https://formspree.io/f/abc123xy`, the action should be `https://formspree.io/f/abc123xy`.
 - **Newsletter form:** Find `YOUR_FORMSPREE_ENDPOINT_NEWSLETTER` in the newsletter form’s `action` attribute. Replace it with your **newsletter form** ID.
 
-### 3. Success redirect (optional)
+### 3. Behaviour
 
 Both forms use a hidden `_next` field that redirects to `https://www.japanesevehicleimports.com.au/contact.html?enquiry=success` or `?newsletter=success`. If your live site uses a different domain, search in `contact.html` for `_next` and update the URLs.
 
