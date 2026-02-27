@@ -20,15 +20,12 @@ function buildEnquiryText(data) {
   const lines = [
     'Japanese Vehicle Imports – Enquiry',
     '-----------------------------------',
-    `Name: ${data.name || '-'}`,
-    `Company: ${data.company || '-'}`,
-    `Role: ${data.role || '-'}`,
+    `Contact Name: ${data.contact_name || '-'}`,
+    `Phone Number: ${data.phone || '-'}`,
     `Email: ${data.email || '-'}`,
-    `Phone: ${data.phone || '-'}`,
-    `Budget: ${data.budget || '-'}`,
     '',
-    'Message:',
-    data.message || '(none)',
+    'Description:',
+    data.description || '(none)',
   ];
   return lines.join('\n');
 }
