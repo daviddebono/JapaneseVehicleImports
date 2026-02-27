@@ -30,10 +30,6 @@ function buildEnquiryText(data) {
   return lines.join('\n');
 }
 
-function buildNewsletterText(data) {
-  return `Japanese Vehicle Imports – Newsletter signup\n\nEmail: ${data.email || '-'}`;
-}
-
 export async function onRequestPost(context) {
   const { request, env } = context;
   const apiKey = env.SMTP2GO_API_KEY;
@@ -49,9 +45,8 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'Invalid JSON' }, 400);
   }
 
-  const type = body.type;
-  if (type !== 'enquiry' && type !== 'newsletter') {
-    return jsonResponse({ error: 'Missing or invalid type (enquiry/newsletter)' }, 400);
+  if (body.type !== 'enquiry') {
+    return jsonResponse({ error: 'Invalid type (enquiry only)' }, 400);
   }
 
   // Honeypot: reject if bot filled the trap field
@@ -59,12 +54,8 @@ export async function onRequestPost(context) {
     return jsonResponse({ ok: true }); // Pretend success to not tip off bots
   }
 
-  const subject =
-    type === 'enquiry'
-      ? 'Japanese Vehicle Imports – Enquiry'
-      : 'Japanese Vehicle Imports – Newsletter signup';
-  const textBody =
-    type === 'enquiry' ? buildEnquiryText(body) : buildNewsletterText(body);
+  const subject = 'Japanese Vehicle Imports – Enquiry';
+  const textBody = buildEnquiryText(body);
 
   const payload = {
     sender: SENDER,

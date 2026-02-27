@@ -8,7 +8,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Contact Us | Japanese Vehicle Imports — Request a Consultation</title>
-  <meta name="description" content="Request a consultation for Japanese vehicle imports. Sydney, Melbourne, Brisbane, Adelaide, Canberra, Hobart. Enquiry form and newsletter signup.">
+  <meta name="description" content="Request a consultation for Japanese vehicle imports. Sydney, Melbourne, Brisbane, Adelaide, Canberra, Hobart. Enquiry form.">
   <link rel="canonical" href="https://www.japanesevehicleimports.com.au/contact.html">
   <meta property="og:title" content="Contact Us | Japanese Vehicle Imports">
   <meta property="og:url" content="https://www.japanesevehicleimports.com.au/contact.html">
@@ -71,26 +71,6 @@
         </form>
       </div>
     </section>
-
-    <section class="section section-alt">
-      <div class="container" style="max-width: 560px;">
-        <h2 class="section-title">Newsletter</h2>
-        <p class="section-subtitle">Get updates and promotions. We only use your email for this; you can unsubscribe anytime.</p>
-        <form id="newsletter-form" method="post" action="">
-          <div class="form-group hp" aria-hidden="true">
-            <label for="url">URL</label>
-            <input type="text" id="url" name="_gotcha" tabindex="-1" autocomplete="off">
-          </div>
-          <div class="form-group">
-            <label for="newsletter-email">Email <span style="color: var(--text-muted);">*</span></label>
-            <input type="email" id="newsletter-email" name="email" required>
-          </div>
-          <button type="submit" class="btn btn-secondary" id="newsletter-submit">Subscribe</button>
-        </form>
-        <div id="newsletter-message-error" class="form-message error" style="display: none;">Something went wrong. Please try again later.</div>
-        <div id="newsletter-message" class="form-message success" style="display: none;">Thanks for subscribing. You’ll hear from us with updates and promotions.</div>
-      </div>
-    </section>
   </main>
 
   <footer class="site-footer">
@@ -108,10 +88,6 @@
       var p = new URLSearchParams(window.location.search);
       if (p.get('enquiry') === 'success') {
         var el = document.getElementById('form-message');
-        if (el) { el.style.display = 'block'; window.history.replaceState({}, '', window.location.pathname); }
-      }
-      if (p.get('newsletter') === 'success') {
-        var el = document.getElementById('newsletter-message');
         if (el) { el.style.display = 'block'; window.history.replaceState({}, '', window.location.pathname); }
       }
 
@@ -152,38 +128,6 @@
             .catch(function() {
               setSubmitState(enquiryBtn, false);
               if (err) err.style.display = 'block';
-            });
-        });
-      }
-
-      var newsletterForm = document.getElementById('newsletter-form');
-      var newsletterBtn = document.getElementById('newsletter-submit');
-      var newsletterMsg = document.getElementById('newsletter-message');
-      if (newsletterBtn) newsletterBtn.setAttribute('data-original-text', newsletterBtn.textContent);
-      if (newsletterForm) {
-        newsletterForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          if (newsletterMsg) newsletterMsg.style.display = 'none';
-          setSubmitState(newsletterBtn, true);
-          var payload = {
-            type: 'newsletter',
-            _gotcha: newsletterForm.querySelector('[name="_gotcha"]') && newsletterForm.querySelector('[name="_gotcha"]').value,
-            email: newsletterForm.querySelector('[name="email"]') && newsletterForm.querySelector('[name="email"]').value
-          };
-          var newsletterErr = document.getElementById('newsletter-message-error');
-          if (newsletterErr) newsletterErr.style.display = 'none';
-          fetch('/api/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) })
-            .then(function(r) { return r.json().then(function(j) { return { ok: r.ok, body: j }; }); })
-            .then(function(_) {
-              setSubmitState(newsletterBtn, false);
-              if (_.ok && _.body && !_.body.error) {
-                if (newsletterMsg) newsletterMsg.style.display = 'block';
-                newsletterForm.reset();
-              } else if (newsletterErr) newsletterErr.style.display = 'block';
-            })
-            .catch(function() {
-              setSubmitState(newsletterBtn, false);
-              if (newsletterErr) newsletterErr.style.display = 'block';
             });
         });
       }
